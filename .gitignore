@@ -1,0 +1,24 @@
+# --- deps / build ---
+node_modules/
+dist/
+.wrangler/
+.vite/
+
+# --- env / secretos locales (NUNCA al repo) ---
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+
+# --- Datos personales / financieros / médicos (NUNCA al repo) ---
+# Exports crudos de YNAB/Notion/WhatsApp y CSVs reconciliados. Contienen PII.
+raw/
+mantenimiento-carro/app/data/
+mantenimiento-carro/app/scripts/generated/
+*.private.*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
