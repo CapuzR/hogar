@@ -21,18 +21,20 @@
     {
       "binding": "DB",
       "database_name": "mantenimiento",
-      "database_id": "REEMPLAZAR-CON-EL-ID-DE-wrangler-d1-create",
+      "database_id": "3a0f123b-93d3-41c3-86dd-d8e75d228697",
       "migrations_dir": "migrations"
     }
   ],
 
   // Vars publicas (no secretos). Los secretos van por `wrangler secret put`:
-  //   - CAP_AUTH_TOKEN  (header X-Cap-Auth de los agentes)
+  //   - CAP_AUTH_TOKEN        (header X-Cap-Auth de los agentes)
+  //   - GOOGLE_CLIENT_SECRET  (OAuth de Google Calendar; ver GCLOUD_SETUP.md)
   // En local se leen de .dev.vars (ver .dev.vars.example).
   "vars": {
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
-    "DEV_AUTH_BYPASS": "false"
+    "DEV_AUTH_BYPASS": "false",
+    "GOOGLE_CLIENT_ID": ""
   },
 
   "observability": { "enabled": true }

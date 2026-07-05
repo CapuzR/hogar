@@ -1,11 +1,11 @@
 name: Deploy hogar
 
-# Push a main -> deploya SOLO los workers cuya carpeta cambio.
-# "Run workflow" (workflow_dispatch) -> deploya TODOS (util para el primer deploy).
+# Push a main -> deploya SOLO lo que cambio (workers y/o app).
+# "Run workflow" (workflow_dispatch) -> deploya TODO.
 #
-# Diseno: UN solo job (no un matrix de 12). GitHub redondea cada JOB al minuto
-# entero, asi que un matrix de 12 jobs facturaria ~12 min por push aunque cambie
-# 1 worker. Con un job unico son ~1-2 min. Repo privado plan Free = 2.000 min/mes.
+# Diseno: el job 'deploy' recorre los workers en UN solo job (no un matrix de 13),
+# porque GitHub redondea cada JOB al minuto entero: un matrix facturaria ~13 min por
+# push aunque cambie 1 worker. Aqui son ~1-2 min. Repo privado Free = 2.000 min/mes.
 on:
   push:
     branches: [main]
@@ -24,6 +24,7 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ff4771186ee248e2186f7952ae4ce944
 
 jobs:
+  # ---- Workers (finanzas + fertilidad): single-file, sin build ----
   deploy:
     runs-on: ubuntu-latest
     steps:
@@ -50,6 +51,7 @@ jobs:
             finanzas/workers/ynab-export-csv
             finanzas/workers/init-notion-schema
             finanzas/workers/reconcile-bank-statement
+            fertilidad/workers/fertilidad-overlay
             fertilidad/workers/notion-upsert-fertilidad-medicamento
             fertilidad/workers/notion-upsert-fertilidad-lab-value
             fertilidad/workers/notion-upsert-fertilidad-sesion
@@ -93,21 +95,43 @@ jobs:
           fi
           exit $rc
 
-  # ---------------------------------------------------------------------------
-  # App mantenimiento-carro: requiere crear la D1 real primero
-  # (wrangler d1 create mantenimiento -> pegar el id en mantenimiento-carro/wrangler.jsonc).
-  # Hasta entonces este job fallaria, por eso queda desactivado.
-  # ---------------------------------------------------------------------------
-  # app:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with: { node-version: 20, cache: npm, cache-dependency-path: mantenimiento-carro/package-lock.json }
-  #     - working-directory: mantenimiento-carro
-  #       run: npm ci && npm run typecheck && npm run build
-  #     - working-directory: mantenimiento-carro
-  #       run: |
-  #         npx wrangler d1 migrations apply mantenimiento --remote
-  #         npm run db:seed:remote
-  #         npx wrangler deploy
+  # ---- App mantenimiento-carro (Hono + D1 + SPA Vite): con build ----
+  # SOLO se deploya a mano (workflow_dispatch / "Run workflow"), NO en cada push:
+  # cada deploy corre migraciones + seed contra la D1 de PRODUCCION, asi que es
+  # una decision deliberada. El typecheck/build es la puerta: si no compila, no toca prod.
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy de la app? (solo a mano)
+        id: changed
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "La app se deploya a mano con Run workflow; en push se salta."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.changed.outputs.go == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mantenimiento-carro/package-lock.json
+
+      - name: Build + migraciones + seed + deploy
+        if: steps.changed.outputs.go == 'true'
+        working-directory: mantenimiento-carro
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+          npx wrangler d1 migrations apply mantenimiento --remote
+          npm run db:seed:remote
+          npx wrangler deploy
