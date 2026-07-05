@@ -31,8 +31,8 @@
   //   - GOOGLE_CLIENT_SECRET  (OAuth de Google Calendar; ver GCLOUD_SETUP.md)
   // En local se leen de .dev.vars (ver .dev.vars.example).
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
+    "ACCESS_TEAM_DOMAIN": "capuzr.cloudflareaccess.com",
+    "ACCESS_AUD": "48be19807ecf287219abdfb157de599fdd79e904d5a3612632c7827171d2a14e",
     "DEV_AUTH_BYPASS": "false",
     "GOOGLE_CLIENT_ID": ""
   },
