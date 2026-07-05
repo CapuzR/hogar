@@ -34,7 +34,7 @@
     "ACCESS_TEAM_DOMAIN": "capuzr.cloudflareaccess.com",
     "ACCESS_AUD": "48be19807ecf287219abdfb157de599fdd79e904d5a3612632c7827171d2a14e",
     "DEV_AUTH_BYPASS": "false",
-    "GOOGLE_CLIENT_ID": ""
+    "GOOGLE_CLIENT_ID": "696100714549-d7fukku250lqv3c0qv48k06g7hgihrg4.apps.googleusercontent.com"
   },
 
   "observability": { "enabled": true }
