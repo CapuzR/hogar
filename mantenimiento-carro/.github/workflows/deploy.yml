@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency: deploy-mantenimiento
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Typecheck defensivo antes de desplegar.
+      - run: npm run typecheck
+
+      # Build de la SPA (Vite) -> ./dist (lo suben los assets del Worker).
+      - run: npm run build
+
+      # Aplica solo migraciones nuevas a la D1 remota (idempotente).
+      - name: Apply D1 migrations (remote)
+        run: npx wrangler d1 migrations apply mantenimiento --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Re-siembra el vocabulario/carros/talleres (upsert idempotente).
+      # NO corre el import de events.csv/fuel.csv: eso es un bootstrap de una sola vez
+      # (ver README) para no re-crear eventos que el usuario haya descartado.
+      - name: Seed reference data (remote)
+        run: npm run db:seed:remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy Worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

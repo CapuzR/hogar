@@ -1,0 +1,39 @@
+{
+  // Config del Worker unico (Hono): sirve la API JSON + la SPA React.
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mantenimiento-carro",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Static assets (build de Vite -> ./dist). El Worker corre PRIMERO solo en /api/*;
+  // el resto (SPA) lo sirven los assets con fallback single-page-application.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // D1 (SQLite). Corre `wrangler d1 create mantenimiento` y pega el id real abajo.
+  // En local (`--local`) wrangler usa un SQLite de miniflare y el id no importa.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mantenimiento",
+      "database_id": "REEMPLAZAR-CON-EL-ID-DE-wrangler-d1-create",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Vars publicas (no secretos). Los secretos van por `wrangler secret put`:
+  //   - CAP_AUTH_TOKEN  (header X-Cap-Auth de los agentes)
+  // En local se leen de .dev.vars (ver .dev.vars.example).
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "DEV_AUTH_BYPASS": "false"
+  },
+
+  "observability": { "enabled": true }
+}

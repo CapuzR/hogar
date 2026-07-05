@@ -1,6 +1,6 @@
 name = "notion-upsert-fertilidad-medicamento"
 main = "src/index.js"
-compatibility_date = "2024-11-01"  # TODO: verifica que coincida con el dashboard (Settings)
+compatibility_date = "2026-04-18"
 # compatibility_flags = ["nodejs_compat"]   # descomenta si el worker lo requiere
 
 # Secretos (NO van aqui). Cargalos con: wrangler secret put NOMBRE

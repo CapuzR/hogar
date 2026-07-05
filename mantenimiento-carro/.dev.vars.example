@@ -1,0 +1,9 @@
+# Copia este archivo a .dev.vars (NO lo commitees) para desarrollo local.
+# En produccion estos van por `wrangler secret put NOMBRE`.
+
+# Secreto compartido con los agentes (Cap / Maruita). Header: X-Cap-Auth
+CAP_AUTH_TOKEN="dev-token-cambiame"
+
+# En local dejamos pasar a los humanos sin Cloudflare Access (no hay Access en dev).
+# En produccion NO se pone; el Worker verifica el JWT de Access contra las JWKS.
+DEV_AUTH_BYPASS="true"

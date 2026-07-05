@@ -15,8 +15,8 @@ dist/
 # --- Datos personales / financieros / médicos (NUNCA al repo) ---
 # Exports crudos de YNAB/Notion/WhatsApp y CSVs reconciliados. Contienen PII.
 raw/
-mantenimiento-carro/app/data/
-mantenimiento-carro/app/scripts/generated/
+mantenimiento-carro/data/
+mantenimiento-carro/scripts/generated/
 *.private.*
 
 # --- OS ---
