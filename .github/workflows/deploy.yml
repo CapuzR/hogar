@@ -2,9 +2,16 @@ name: Deploy hogar
 
 # Push a main -> deploya SOLO los workers cuya carpeta cambio.
 # "Run workflow" (workflow_dispatch) -> deploya TODOS (util para el primer deploy).
+#
+# Diseno: UN solo job (no un matrix de 12). GitHub redondea cada JOB al minuto
+# entero, asi que un matrix de 12 jobs facturaria ~12 min por push aunque cambie
+# 1 worker. Con un job unico son ~1-2 min. Repo privado plan Free = 2.000 min/mes.
 on:
   push:
     branches: [main]
+    paths:
+      - 'finanzas/workers/**'
+      - 'fertilidad/workers/**'
   workflow_dispatch:
 
 concurrency:
@@ -12,67 +19,84 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   # El account_id NO es secreto (sale en la URL del dashboard).
   CLOUDFLARE_ACCOUNT_ID: ff4771186ee248e2186f7952ae4ce944
 
 jobs:
-  workers:
+  deploy:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { name: fetch-exchange-rate,                  dir: finanzas/workers/fetch-exchange-rate }
-          - { name: write-ynab-transaction,               dir: finanzas/workers/write-ynab-transaction }
-          - { name: sync-ynab-meta,                       dir: finanzas/workers/sync-ynab-meta }
-          - { name: notion-upsert-expense,                dir: finanzas/workers/notion-upsert-expense }
-          - { name: ynab-export-csv,                      dir: finanzas/workers/ynab-export-csv }
-          - { name: init-notion-schema,                   dir: finanzas/workers/init-notion-schema }
-          - { name: reconcile-bank-statement,             dir: finanzas/workers/reconcile-bank-statement }
-          - { name: notion-upsert-fertilidad-medicamento, dir: fertilidad/workers/notion-upsert-fertilidad-medicamento }
-          - { name: notion-upsert-fertilidad-lab-value,   dir: fertilidad/workers/notion-upsert-fertilidad-lab-value }
-          - { name: notion-upsert-fertilidad-sesion,      dir: fertilidad/workers/notion-upsert-fertilidad-sesion }
-          - { name: notion-upsert-fertilidad-ciclo,       dir: fertilidad/workers/notion-upsert-fertilidad-ciclo }
-          - { name: init-notion-fertilidad-schema,        dir: fertilidad/workers/init-notion-fertilidad-schema }
-          # PENDIENTE fertilidad-overlay: falta declarar el KV OVERLAY_KV en su wrangler.toml.
-          # Descomentar cuando el binding este puesto (si no, el deploy le quita el KV):
-          # - { name: fertilidad-overlay, dir: fertilidad/workers/fertilidad-overlay }
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # necesario para el diff contra el commit anterior
+          fetch-depth: 0   # historia completa para el diff contra el commit anterior
 
-      - name: Cambio ${{ matrix.name }}?
-        id: changed
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar wrangler (una vez, no por-worker)
+        run: npm i -g wrangler@4.40.0
+
+      - name: Deploy de los workers que cambiaron
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
-          fi
-          base="${{ github.event.before }}"
-          if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0   # base desconocida -> deploya por seguridad
-          fi
-          if git diff --name-only "$base" "${{ github.sha }}" | grep -q "^${{ matrix.dir }}/"; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          set -uo pipefail   # sin -e: un deploy fallido NO debe matar el loop
+          WORKERS=(
+            finanzas/workers/fetch-exchange-rate
+            finanzas/workers/write-ynab-transaction
+            finanzas/workers/sync-ynab-meta
+            finanzas/workers/notion-upsert-expense
+            finanzas/workers/ynab-export-csv
+            finanzas/workers/init-notion-schema
+            finanzas/workers/reconcile-bank-statement
+            fertilidad/workers/notion-upsert-fertilidad-medicamento
+            fertilidad/workers/notion-upsert-fertilidad-lab-value
+            fertilidad/workers/notion-upsert-fertilidad-sesion
+            fertilidad/workers/notion-upsert-fertilidad-ciclo
+            fertilidad/workers/init-notion-fertilidad-schema
+          )
+
+          ALL=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then ALL=true; fi
+          BASE="${{ github.event.before }}"
+          if [ "$ALL" != "true" ] && ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            ALL=true   # primer push / base desconocida -> deploya todo por seguridad
           fi
 
-      - name: Deploy ${{ matrix.name }}
-        if: steps.changed.outputs.changed == 'true'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ${{ matrix.dir }}
-          # --keep-vars: NO borra las vars/secrets que ya estan puestas en el dashboard.
-          command: deploy --keep-vars
+          rc=0
+          failed=()
+          for dir in "${WORKERS[@]}"; do
+            changed=false
+            if [ "$ALL" = "true" ]; then
+              changed=true
+            elif ! git diff --quiet "$BASE" "${{ github.sha }}" -- "$dir/"; then
+              changed=true
+            fi
+            if [ "$changed" != "true" ]; then
+              echo "- skip $dir (sin cambios)"
+              continue
+            fi
+            echo "::group::deploy $dir"
+            if ( cd "$dir" && wrangler deploy --keep-vars ); then
+              echo "OK $dir"
+            else
+              echo "::error::fallo el deploy de $dir"
+              failed+=("$dir")
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ "$rc" -ne 0 ]; then
+            echo "Workers que fallaron: ${failed[*]}"
+          fi
+          exit $rc
 
   # ---------------------------------------------------------------------------
   # App mantenimiento-carro: requiere crear la D1 real primero
   # (wrangler d1 create mantenimiento -> pegar el id en mantenimiento-carro/wrangler.jsonc).
-  # Hasta entonces, este job fallaria, por eso queda desactivado.
+  # Hasta entonces este job fallaria, por eso queda desactivado.
   # ---------------------------------------------------------------------------
   # app:
   #   runs-on: ubuntu-latest
@@ -83,9 +107,6 @@ jobs:
   #     - working-directory: mantenimiento-carro
   #       run: npm ci && npm run typecheck && npm run build
   #     - working-directory: mantenimiento-carro
-  #       env:
-  #         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #         CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
   #       run: |
   #         npx wrangler d1 migrations apply mantenimiento --remote
   #         npm run db:seed:remote
