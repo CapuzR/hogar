@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
+  LogOut,
   Monitor,
   Moon,
   Sun,
@@ -72,9 +73,26 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      <Section title="Sesión">
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Button variant="outline" className="w-full" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" /> Cerrar sesión
+          </Button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Cierra tu sesión de Cloudflare Access; tendrás que volver a entrar con tu correo.
+          </p>
+        </div>
+      </Section>
+
       <p className="pt-2 text-center text-xs text-muted-foreground">Mantenimiento · Optra &amp; Clio</p>
     </div>
   );
+}
+
+/** Cierra la sesión de Cloudflare Access (borra la cookie y pide OTP en el próximo ingreso). */
+function handleLogout() {
+  if (!confirm("¿Cerrar sesión? Tendrás que volver a entrar con tu correo.")) return;
+  window.location.href = "/cdn-cgi/access/logout";
 }
 
 function CalendarCard() {
@@ -85,7 +103,12 @@ function CalendarCard() {
   const flash = params.get("google");
 
   async function disconnect() {
-    if (!confirm("¿Desconectar Google Calendar?")) return;
+    if (
+      !confirm(
+        "¿Seguro que quieres desconectar Google Calendar?\n\nLos eventos ya creados en el calendario se quedan; solo dejará de crear nuevos.",
+      )
+    )
+      return;
     setDisconnecting(true);
     try {
       await fetch("/api/google/disconnect", { method: "POST" });
