@@ -20,8 +20,9 @@ const nowIso = new Date().toISOString();
 const lines: string[] = [
   "-- GENERADO por scripts/seed.ts — no editar a mano.",
   "-- Data de referencia: vehiculos + tipos_servicio + talleres.",
-  "PRAGMA foreign_keys=OFF;",
-  "BEGIN TRANSACTION;",
+  // OJO: nada de BEGIN TRANSACTION/COMMIT ni PRAGMA aqui. D1 remoto rechaza
+  // transacciones explicitas en `wrangler d1 execute` (wrangler ya corre el
+  // archivo de forma atomica). Los upserts son idempotentes de todos modos.
   "",
 ];
 
@@ -100,7 +101,7 @@ for (const s of TALLERES) {
   );
 }
 
-lines.push("", "COMMIT;", "PRAGMA foreign_keys=ON;", "");
+lines.push("");
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, lines.join("\n"), "utf8");
