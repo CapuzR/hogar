@@ -53,8 +53,9 @@ const lines: string[] = [
   "-- ⚠️  BOOTSTRAP DE UNA SOLA VEZ. Es INSERT OR IGNORE por PK: si un evento fue",
   "--     descartado (DELETE) desde la UI, re-correr este import lo RESUCITA.",
   "--     No lo corras en cada deploy (el GitHub Action no lo hace). Ver README.",
-  "PRAGMA foreign_keys=OFF;",
-  "BEGIN TRANSACTION;",
+  // Sin PRAGMA/BEGIN TRANSACTION: D1 remoto rechaza transacciones explicitas.
+  // Es FK-safe por construccion (padres del seed + orden evento->servicio->pago)
+  // y todo es INSERT OR IGNORE (idempotente).
   "",
   "-- eventos_mantenimiento (+ servicios + pagos)",
 ];
@@ -170,7 +171,7 @@ for (const r of fuel) {
   fuelCount++;
 }
 
-lines.push("", "COMMIT;", "PRAGMA foreign_keys=ON;", "");
+lines.push("");
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, lines.join("\n"), "utf8");
