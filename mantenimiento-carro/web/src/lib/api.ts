@@ -249,3 +249,127 @@ export function useDeleteEvent() {
     onSuccess: invalidate,
   });
 }
+
+/* ───────────────────────── Agenda / Calendario ───────────────────────── */
+export type AgendaStatus = "suggested" | "scheduled" | "done" | "dismissed";
+export interface AgendaItem {
+  id: string;
+  vehicleId: string | null;
+  carSlug: string | null;
+  carLabel: string | null;
+  serviceTypeKey: string | null;
+  serviceLabel: string | null;
+  systemKey: string | null;
+  title: string;
+  notes: string | null;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  estimatedCost: string | null;
+  serviceCenter: string | null;
+  status: AgendaStatus;
+  source: "auto" | "manual";
+  reason: string | null;
+  googleEventId: string | null;
+  googleHtmlLink: string | null;
+  approvedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+export interface AgendaInput {
+  car?: string | null;
+  service_type?: string | null;
+  title: string;
+  notes?: string | null;
+  date: string;
+  time?: string | null;
+  estimated_cost?: string | null;
+  service_center?: string | null;
+}
+export interface AgendaPatch extends Partial<AgendaInput> {
+  status?: AgendaStatus;
+}
+export interface GoogleStatus {
+  configured: boolean;
+  connected: boolean;
+  email: string | null;
+  calendarName: string | null;
+  invitees: string[];
+}
+export interface ApproveResult {
+  item: AgendaItem;
+  calendar: { connected: boolean; created: boolean; error: string | null };
+}
+
+export function useAgenda(filters: { status?: string; car?: string } = {}) {
+  const p = new URLSearchParams();
+  if (filters.status) p.set("status", filters.status);
+  if (filters.car) p.set("car", filters.car);
+  const s = p.toString();
+  return useQuery({
+    queryKey: ["agenda", filters],
+    queryFn: () => api<{ items: AgendaItem[] }>(`/agenda${s ? `?${s}` : ""}`),
+  });
+}
+
+export function useGoogleStatus() {
+  return useQuery({ queryKey: ["google-status"], queryFn: () => api<GoogleStatus>("/google/status") });
+}
+
+function useInvalidateAgenda() {
+  const qc = useQueryClient();
+  return () => {
+    qc.invalidateQueries({ queryKey: ["agenda"] });
+  };
+}
+
+export function useGenerateSuggestions() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: () => api<{ created: number; items: AgendaItem[] }>("/agenda/generate", { method: "POST" }),
+    onSuccess: invalidate,
+  });
+}
+export function useCreateAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: (input: AgendaInput) =>
+      api<{ item: AgendaItem }>("/agenda", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: invalidate,
+  });
+}
+export function useUpdateAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: AgendaPatch }) =>
+      api<{ item: AgendaItem }>(`/agenda/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+    onSuccess: invalidate,
+  });
+}
+export function useApproveAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: (id: string) => api<ApproveResult>(`/agenda/${id}/approve`, { method: "POST" }),
+    onSuccess: invalidate,
+  });
+}
+export function useDismissAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: (id: string) => api<{ item: AgendaItem }>(`/agenda/${id}/dismiss`, { method: "POST" }),
+    onSuccess: invalidate,
+  });
+}
+export function useCompleteAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: (id: string) => api<{ item: AgendaItem }>(`/agenda/${id}/complete`, { method: "POST" }),
+    onSuccess: invalidate,
+  });
+}
+export function useDeleteAgenda() {
+  const invalidate = useInvalidateAgenda();
+  return useMutation({
+    mutationFn: (id: string) => api<{ ok: boolean; deleted: string }>(`/agenda/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+}

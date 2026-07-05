@@ -34,7 +34,7 @@ export function EventsTable({
     );
   }
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="overflow-x-auto rounded-2xl border bg-card">
       <Table>
         <TableHeader>
           <TableRow>

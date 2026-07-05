@@ -31,10 +31,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Gasto de mantenimiento y gasolina · Optra & Clio</p>
-      </div>
+      <p className="text-sm text-muted-foreground">Gasto de mantenimiento y gasolina · Optra &amp; Clio</p>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Mantenimiento" value={money(totals.maintenanceUsdt)} sub={`${totals.eventCount} eventos`} />

@@ -193,6 +193,50 @@ export const fuelLogs = sqliteTable(
   (t) => [index("idx_fuel_date").on(t.fuelDate), index("idx_fuel_vehicle").on(t.vehicleId)],
 );
 
+/* ─────────────────── agenda (eventos sugeridos / programados) ─────────────────
+ * Eventos FUTUROS de mantenimiento que se conectan con Google Calendar.
+ * Flujo: el motor de sugerencias crea filas `suggested` -> el usuario aprueba
+ * (`scheduled`, se crea el evento en el calendario "Hogar" invitando a los 2
+ * correos) -> se marca `done` al completarlo. Distinto de `eventos_mantenimiento`
+ * (hechos PASADOS del ledger). */
+export const agenda = sqliteTable(
+  "agenda",
+  {
+    id: text("id").primaryKey(), // agd_...
+    vehicleId: text("vehicle_id").references(() => vehiculos.id),
+    serviceTypeKey: text("service_type_key").references(() => tiposServicio.key),
+    title: text("title").notNull(),
+    notes: text("notes"),
+    scheduledDate: text("scheduled_date").notNull(), // ISO date YYYY-MM-DD
+    scheduledTime: text("scheduled_time"), // HH:MM (null = todo el día)
+    estimatedCost: text("estimated_cost"), // texto libre ("$100 - $1000")
+    serviceCenter: text("service_center"),
+    status: text("status").notNull().default("suggested"), // suggested | scheduled | done | dismissed
+    source: text("source").notNull().default("auto"), // auto | manual
+    reason: text("reason"), // por qué se sugirió (vencido / toca pronto)
+    dedupeKey: text("dedupe_key").unique(), // idempotencia de sugerencias auto
+    googleEventId: text("google_event_id"),
+    googleHtmlLink: text("google_html_link"),
+    createdAt: text("created_at").notNull().$defaultFn(nowIso),
+    approvedAt: text("approved_at"),
+    completedAt: text("completed_at"),
+  },
+  (t) => [
+    index("idx_agenda_vehicle").on(t.vehicleId),
+    index("idx_agenda_status").on(t.status),
+    index("idx_agenda_date").on(t.scheduledDate),
+  ],
+);
+
+/* ───────────────────── app_config (clave/valor del servidor) ──────────────────
+ * Almacén simple para el estado de la conexión con Google (refresh token,
+ * id del calendario "Hogar", correo conectado). */
+export const appConfig = sqliteTable("app_config", {
+  key: text("key").primaryKey(),
+  value: text("value"),
+  updatedAt: text("updated_at").notNull().$defaultFn(nowIso),
+});
+
 /* Marca temporal SQL util para defaults en migraciones manuales si hiciera falta. */
 export const sqlNow = sql`(strftime('%Y-%m-%dT%H:%M:%fZ','now'))`;
 
@@ -206,7 +250,10 @@ export type EventoPago = typeof eventoPagos.$inferSelect;
 export type LecturaOdometro = typeof lecturasOdometro.$inferSelect;
 export type Recordatorio = typeof recordatorios.$inferSelect;
 export type FuelLog = typeof fuelLogs.$inferSelect;
+export type Agenda = typeof agenda.$inferSelect;
+export type AppConfig = typeof appConfig.$inferSelect;
 
 export type NewEventoMantenimiento = typeof eventosMantenimiento.$inferInsert;
 export type NewEventoPago = typeof eventoPagos.$inferInsert;
 export type NewFuelLog = typeof fuelLogs.$inferInsert;
+export type NewAgenda = typeof agenda.$inferInsert;

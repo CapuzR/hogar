@@ -8,6 +8,10 @@ export interface Env {
   ACCESS_AUD?: string; // Application Audience (AUD) tag
   // Solo dev: deja pasar humanos sin Access (no existe Access en local).
   DEV_AUTH_BYPASS?: string;
+  // Google Calendar (OAuth). CLIENT_ID va por vars; CLIENT_SECRET por wrangler secret.
+  // Se configuran tras el setup de Google Cloud (ver GCLOUD_SETUP.md).
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 }
 
 /** Identidad resuelta por el middleware de auth. */

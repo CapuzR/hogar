@@ -52,12 +52,9 @@ export function ReviewPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold">Cola de revisión</h1>
-        <p className="text-sm text-muted-foreground">
-          {events.length} eventos por confirmar (carro, monto o tipo de servicio).
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {events.length} eventos por confirmar (carro, monto o tipo de servicio).
+      </p>
 
       {events.length === 0 ? (
         <div className="rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
@@ -144,7 +141,7 @@ function ReviewCard({
           </div>
           {event.description && <p className="mt-1 text-sm">{event.description}</p>}
           {event.rawText && (
-            <p className="mt-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-900">
+            <p className="mt-1.5 rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-xs text-foreground">
               ⚠ {event.rawText}
             </p>
           )}

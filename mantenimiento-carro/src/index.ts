@@ -5,9 +5,11 @@
  */
 import { Hono } from "hono";
 import { auth } from "./middleware/auth";
+import { agendaRouter } from "./routes/agenda";
 import { carsRouter } from "./routes/cars";
 import { eventsRouter } from "./routes/events";
 import { fuelRouter } from "./routes/fuel";
+import { googleRouter } from "./routes/google";
 import { ingestRouter } from "./routes/ingest";
 import { serviceTypesRouter } from "./routes/service-types";
 import { statsRouter } from "./routes/stats";
@@ -28,6 +30,8 @@ app.route("/api/cars", carsRouter);
 app.route("/api/service-types", serviceTypesRouter);
 app.route("/api/fuel", fuelRouter);
 app.route("/api/stats", statsRouter);
+app.route("/api/agenda", agendaRouter); // sugerencias + eventos programados
+app.route("/api/google", googleRouter); // conexión con Google Calendar
 
 // 404 JSON para /api/* no encontrado.
 app.all("/api/*", (c) => c.json({ error: "ruta no encontrada" }, 404));

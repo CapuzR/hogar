@@ -2,27 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ───────────────────────────── Tema del hogar ─────────────────────────────
+   Color base: azul-turquesa ("Turquesa Azul"). Tokens en HSL (H S% L%) para
+   poder aplicar opacidad con hsl(var(--x) / .5). Dos modos: claro y oscuro. */
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  color-scheme: light;
+
+  --background: 196 44% 97%;
+  --foreground: 200 30% 13%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --primary: 221 83% 45%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 94%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 210 40% 94%;
-  --muted-foreground: 215 16% 42%;
-  --accent: 210 40% 92%;
-  --accent-foreground: 222 47% 11%;
+  --card-foreground: 200 30% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 30% 13%;
+
+  --primary: 189 92% 33%;          /* turquesa-azul */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 38% 92%;
+  --secondary-foreground: 199 40% 20%;
+  --muted: 196 30% 93%;
+  --muted-foreground: 200 12% 44%;
+  --accent: 188 66% 90%;
+  --accent-foreground: 191 90% 22%;
+
   --destructive: 0 72% 51%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214 32% 88%;
-  --input: 214 32% 88%;
-  --ring: 221 83% 45%;
-  --radius: 0.6rem;
-  --optra: 222 47% 20%;
-  --clio: 210 90% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 160 72% 34%;
+  --warning: 34 94% 44%;
+
+  --border: 196 26% 87%;
+  --input: 196 26% 85%;
+  --ring: 189 92% 33%;
+  --radius: 0.85rem;
+
+  /* Acentos por carro (visibles en ambos modos). */
+  --optra: 220 12% 32%;            /* Optra negro -> grafito */
+  --clio: 214 82% 50%;             /* Clio azul */
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: 200 33% 8%;
+  --foreground: 195 22% 91%;
+  --card: 200 28% 11%;
+  --card-foreground: 195 22% 91%;
+  --popover: 200 30% 12%;
+  --popover-foreground: 195 22% 91%;
+
+  --primary: 187 84% 46%;          /* turquesa más brillante sobre fondo oscuro */
+  --primary-foreground: 200 45% 6%;
+  --secondary: 200 20% 18%;
+  --secondary-foreground: 195 22% 91%;
+  --muted: 200 18% 16%;
+  --muted-foreground: 197 13% 60%;
+  --accent: 194 42% 20%;
+  --accent-foreground: 187 78% 70%;
+
+  --destructive: 0 62% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 159 62% 44%;
+  --warning: 38 90% 55%;
+
+  --border: 200 16% 21%;
+  --input: 200 16% 23%;
+  --ring: 187 84% 46%;
+
+  --optra: 220 10% 70%;            /* más claro para que el carro negro se vea */
+  --clio: 213 84% 64%;
 }
 
 * {
@@ -36,16 +82,22 @@ body,
 }
 
 body {
-  background-color: hsl(var(--background));
+  min-height: 100%;
   color: hsl(var(--foreground));
+  /* Toque turquesa arriba, SIN background-attachment: fixed (causa saltos de
+     scroll en móvil). Degradado corto que se desvanece a fondo sólido. */
+  background:
+    linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent 220px),
+    hsl(var(--background));
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Scrollbar sutil */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
-/* Tabular numbers para montos */
+/* Números tabulares para montos */
 .tnum { font-variant-numeric: tabular-nums; }

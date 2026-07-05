@@ -24,12 +24,9 @@ export function FuelPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold">Gasolina</h1>
-        <p className="text-sm text-muted-foreground">
-          Registro de combustible, separado del mantenimiento.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Registro de combustible, separado del mantenimiento.
+      </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Total gasolina" value={money(data?.totalUsdt)} sub={`${data?.count ?? 0} cargas`} accent="text-[hsl(var(--clio))]" />
@@ -38,7 +35,7 @@ export function FuelPage() {
         ))}
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-2xl border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

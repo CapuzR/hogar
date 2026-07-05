@@ -52,3 +52,32 @@ export type EventPatch = z.infer<typeof eventPatch>;
 
 export const normalizeInput = z.object({ text: z.string().min(1) });
 export const batchInput = z.object({ events: z.array(eventInput).min(1).max(50) });
+
+/* ───────────────────────────── Agenda / Calendario ─────────────────────────── */
+
+/** Alta manual de un evento de agenda (futuro / a programar). */
+export const agendaInput = z.object({
+  car: z.string().optional(), // slug
+  service_type: z.string().optional(), // key del vocabulario
+  title: z.string().min(1),
+  notes: z.string().optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "fecha ISO (YYYY-MM-DD)"),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "hora HH:MM").optional(),
+  estimated_cost: z.string().optional(),
+  service_center: z.string().optional(),
+});
+export type AgendaInput = z.infer<typeof agendaInput>;
+
+/** Edición de un evento de agenda. */
+export const agendaPatch = z.object({
+  car: z.string().nullable().optional(),
+  service_type: z.string().nullable().optional(),
+  title: z.string().min(1).optional(),
+  notes: z.string().nullable().optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}/).optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  estimated_cost: z.string().nullable().optional(),
+  service_center: z.string().nullable().optional(),
+  status: z.enum(["suggested", "scheduled", "done", "dismissed"]).optional(),
+});
+export type AgendaPatch = z.infer<typeof agendaPatch>;
