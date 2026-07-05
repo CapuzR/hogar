@@ -15,9 +15,9 @@ export const paymentInput = z.object({
 /** Payload de ingesta / alta de evento (PLAN.md §9). */
 export const eventInput = z.object({
   client_id: z.string().min(1).optional(), // idempotencia; se genera si falta
-  car: z.string().optional(), // slug (optra | clio); ausente/unknown -> sin carro
+  car: z.string().nullable().optional(), // slug (optra | clio); null/ausente/unknown -> sin carro
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "fecha ISO (YYYY-MM-DD)"),
-  odometer: z.number().int().nonnegative().optional(),
+  odometer: z.number().int().nonnegative().nullable().optional(), // null cuando el form lo deja vacio
   // key ya resuelta; acepta string O lista (el skill de agentes manda lista aqui).
   service_type: z.union([z.string(), z.array(z.string())]).optional(),
   service_types: z.array(z.string()).optional(), // varias por visita (forma alterna)
