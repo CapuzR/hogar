@@ -34,7 +34,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Instalar wrangler (una vez, no por-worker)
         run: npm i -g wrangler@4.40.0
@@ -121,7 +121,7 @@ jobs:
         if: steps.changed.outputs.go == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: mantenimiento-carro/package-lock.json
 
