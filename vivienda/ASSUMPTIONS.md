@@ -1,9 +1,8 @@
-# ASSUMPTIONS.md — Rent vs. Buy Caracas (para tu aprobación)
+# ASSUMPTIONS.md — Rent vs. Buy Caracas
 
-> **STOP / PASO 2.** Esto es lo que voy a asumir y por qué, antes de escribir una línea de modelo.
-> No apruebes por cortesía: si un número te huele mal, dímelo y lo cambio. Toda cifra es un
-> **slider** en la UI final — esto son solo los *defaults* y sus rangos.
-> Fuentes y trazabilidad completa en [`RESEARCH.md`](./RESEARCH.md).
+> **✅ APROBADO (jul 2026).** Decisiones del dueño registradas en §10. Toda cifra es un **slider**
+> en la UI final — esto son los *defaults* y sus rangos. Fuentes y trazabilidad en [`RESEARCH.md`](./RESEARCH.md).
+> El JSON operativo del modelo vive en [`assumptions.json`](./assumptions.json).
 >
 > Confianza por parámetro: **alto** (dato documentado) · **medio** (estimación razonable) ·
 > **adivinado** (juicio mío, no observable — trátalo como especulación marcada).
@@ -103,13 +102,16 @@ jurisdicción" que el apartamento paga y el portafolio no.**
 
 **Pesos por defecto de la rama B** (todos ajustables con sliders; deben sumar 100%):
 
-| Activo | Peso default | CAGR base | Vol | Cola (t ν) |
+| Activo | Peso default (pro-riesgo) | CAGR base | Vol | Cola (t ν) |
 |---|---|---|---|---|
-| BTC | 25% | 8% | 65% | 4 |
-| ETH | 10% | 7% | 90% | 3 |
-| S&P 500 (TR) | 40% | 10% | 16% | 6 |
-| Oro | 10% | 5% | 15% | 6 |
-| Stables/T-bills | 15% | 3.8% | 0.5% | normal |
+| BTC | 40% | 8% | 65% | 4 |
+| ETH | 25% | 7% | 90% | 3 |
+| S&P 500 (TR) | 20% | 10% | 16% | 6 |
+| Oro | 5% | 5% | 15% | 6 |
+| Stables/T-bills | 10% | 3.8% | 0.5% | normal |
+
+> **Nota adversarial:** 65% cripto (BTC+ETH) con correlación 0.85 = **una sola apuesta de alto beta**,
+> no un portafolio diversificado. El modelo lo tratará como tal (colas conjuntas, drawdown compartido).
 
 **Correlaciones** (matriz base + matriz "crisis" de dos regímenes — ver RESEARCH §10):
 BTC–ETH **0.85** (una sola apuesta), BTC/ETH–SPX **0.40** (cripto NO diversifica; sube a 0.7–0.9 en estrés),
@@ -175,28 +177,36 @@ jurisdiccional).
 
 ---
 
-## 9. DECISIONES QUE NECESITO DE TI antes de construir
+## 9. Métricas de decisión
 
-1. **Baseline de vivienda (el punto §0):** ¿comparo comprar-para-vivir contra alquilar la **unidad
-   equivalente** (corridor, ~$700 — comparación justa de igual consumo), o quieres que la rama "alquilar"
-   sea vivir en **Solar-class** ($1,400) y entonces "comprar" solo compite vía **rentvesting**? Mi
-   recomendación: modelar **ambas** y mostrarlas, con corridor-vs-corridor como comparación principal
-   (es la única apples-to-apples). ¿OK?
-2. **Reinvertir el ahorro mensual del dueño** (excedente renta − costos de propiedad): default **ON**
-   (comparación justa). ¿Lo dejo ON?
-3. **Pesos default del portafolio B** (§5: 25/10/40/10/15 BTC/ETH/SPX/Oro/Stables). ¿Te sirven como
-   punto de partida o prefieres otro mix (p.ej. más cripto, ya que tu tesis es pro-riesgo)?
-4. **Burn mensual personal** para la métrica de runway (cuánto gasta tu familia/mes). Necesito un número
-   para "meses de runway". ¿$3,000/mes? ¿otro? (No lo commiteo como dato tuyo si no quieres — puede ser
-   un slider genérico con default $3,000.)
-5. **Ubicación del código:** lo pongo en **`vivienda/`** (nuevo dominio del monorepo, junto a finanzas/
-   fertilidad/etc.), app Vite independiente. ¿OK ese nombre?
+Patrimonio neto terminal (5/10/20a), IRR (retorno anualizado del patrimonio), max drawdown, tiempo de
+recuperación, **P(B > A)**, P(pérdida > 50% del capital), Sharpe, break-even CAGR, percentiles
+5/25/50/75/95 (fan chart), **meses de runway personal disponible en t**, y **liquidity-adjusted return**
+(retorno del patrimonio penalizado por iliquidez + fricción de egreso + riesgo jurisdiccional).
 
 ---
 
-**Si apruebas (con o sin cambios), procedo a PASO 3: motor + tests, luego PASO 4 UI, luego PASO 5
-veredicto — incluyendo dónde creo que tu hipótesis "B gana" está equivocada o floja.** Ya tengo una
-lectura preliminar: con apreciación 0% + reinversión del excedente del dueño, **A (comprar) es más
-competitiva de lo que tu hipótesis asume**, pero el **riesgo jurisdiccional + iliquidez + la opción de
-portabilidad de founder** probablemente inclinan la balanza hacia B/C bajo tu perfil de riesgo. Lo
-cuantifico en el modelo, no te lo vendo de palabra.
+## 10. DECISIONES TOMADAS (✅ aprobado por el dueño, jul 2026)
+
+1. **Baseline de vivienda (CORREGIDO por el dueño):** **comprar = corridor** (~$70k, vives ahí) vs
+   **alquilar = Solar** ($1,400/mes) **+ invertir**. Nunca alquilas corridor. Presupuesto de vivienda
+   común = renta Solar $1,400/mes. Implicaciones del modelo:
+   - **B** (alquilar Solar + portafolio): paga $1,400/mes desde ingreso, invierte $70k, **excedente mensual = 0**.
+   - **A** (comprar corridor): paga ~$126/mes (condo+mant), **libera ~$1,274/mes** que reinvierte (toggle),
+     pero **vive en corridor**. Ese excedente = ~$574 ahorro genuino own-vs-rent (misma unidad) + ~$700
+     *downgrade de vivienda* (Solar−corridor). A gana patrimonio **a cambio de vivir peor** — se marca en Veredicto.
+   - **C1 rentvesting**: vives en Solar (pagas $1,400), compras+alquilas corridor (bruto $700), inviertes el neto.
+   - `payRentFromPortfolio` usa $1,400 → retiro ~24% sobre $70k → ruina rápida (sequence risk explícito).
+2. **Reinversión del excedente mensual del dueño:** **ON** (con toggle en la UI).
+3. **Pesos default del portafolio B (pro-riesgo):** **40% BTC / 25% ETH / 20% SPX / 5% oro / 10% stables**.
+   65% cripto → el modelo lo trata como *una sola apuesta de alto beta*.
+4. **Burn mensual personal:** **$3,000/mes** (default genérico, slider). **Ingreso familiar:** **$4,000/mes**
+   (Maruita + founder). Ingreso se usa para: (a) verificar que la renta se paga con ingreso, no con el
+   portafolio (sequence risk), y (b) dimensionar el excedente reinvertible del dueño.
+5. **Ubicación:** **`vivienda/`** — nuevo dominio del monorepo, app Vite independiente.
+
+**Lectura preliminar (a validar con el modelo):** con apreciación 0% + reinversión del excedente del
+dueño, **A (comprar) es más competitiva de lo que la hipótesis "B gana" asume** — porque el due
+ño invierte el ahorro de renta además de tener el inmueble. Lo que probablemente inclina hacia B/C es el
+**riesgo jurisdiccional (jump) + iliquidez + la opción de portabilidad de founder**. Se cuantifica en el
+motor, no se vende de palabra.

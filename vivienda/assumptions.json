@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "title": "Rent vs Buy Caracas — parámetros del modelo",
+    "asOf": "2026-07-15",
+    "currency": "USD",
+    "confidenceLegend": {
+      "alto": "dato documentado, varias fuentes concuerdan",
+      "medio": "estimación razonable, dispersión entre fuentes",
+      "adivinado": "juicio del autor, no observable — especulación marcada"
+    },
+    "note": "Todos los valores son defaults editables por sliders en la UI. Ver RESEARCH.md para fuentes."
+  },
+
+  "capital": { "value": 70000, "min": 40000, "max": 150000, "confidence": "alto", "source": "premisa del usuario" },
+  "horizonYears": { "value": 10, "options": [5, 10, 20], "confidence": "alto", "source": "premisa" },
+  "usdInflation": { "value": 0.035, "min": 0.02, "max": 0.05, "confidence": "alto", "source": "US CPI jun 2026 3.5%" },
+  "riskFreeRate": { "value": 0.04, "min": 0.02, "max": 0.05, "confidence": "alto", "source": "T-bill 3.7% / 2y 4.19% jul 2026" },
+
+  "household": {
+    "monthlyIncome": { "value": 4000, "min": 1000, "max": 15000, "confidence": "alto", "source": "dato del usuario (Maruita + founder)" },
+    "monthlyBurn": { "value": 3000, "min": 1000, "max": 10000, "confidence": "adivinado", "source": "default genérico; slider" }
+  },
+
+  "realEstate": {
+    "purchasePrice": { "value": 70000, "min": 50000, "max": 130000, "confidence": "medio", "source": "listings corredor El Hatillo: 84-121 m2, 2-3H, dateado" },
+    "impliedM2": { "value": 100, "min": 75, "max": 130, "confidence": "medio", "source": "RESEARCH §2" },
+    "imputedRentMonthly": { "value": 700, "min": 500, "max": 1200, "confidence": "medio", "source": "renta de la unidad corridor que compras/alquilas (rentvesting): $600-1000/mes" },
+    "liveRentMonthly": { "value": 1400, "min": 900, "max": 2000, "confidence": "alto", "source": "renta Solar donde el usuario realmente quiere vivir: $950-1700 (data del usuario)" },
+    "appreciationRealUSD": { "value": 0.0, "min": -0.03, "max": 0.05, "confidence": "medio", "source": "histórico -45/-50% desde 2014, ahora plano. RESEARCH §1" },
+    "appreciationVol": { "value": 0.08, "min": 0.0, "max": 0.2, "confidence": "adivinado", "source": "vol anual de precio inmueble Caracas USD; sin índice auditado" },
+    "condoMonthly": { "value": 70, "min": 20, "max": 200, "confidence": "adivinado", "source": "$40-80 apto medio; $80-150 clase-Solar. RESEARCH §5" },
+    "maintenancePctPerYear": { "value": 0.01, "min": 0.005, "max": 0.025, "confidence": "medio", "source": "1%/año valor, stock viejo" },
+    "buyCostPct": { "value": 0.04, "min": 0.03, "max": 0.10, "confidence": "medio", "source": "registro+notaría+abogado+gestoría ~4%; stress 10% por sobre-avalúo" },
+    "sellCostPct": { "value": 0.055, "min": 0.035, "max": 0.07, "confidence": "medio", "source": "comisión 5% + ISLR 0.5% + solvencias" },
+    "exitHaircutPct": { "value": 0.10, "min": 0.0, "max": 0.25, "confidence": "medio", "source": "cierre ~91% del asking; corredor dateado peor" },
+    "monthsToSell": { "value": 9, "min": 3, "max": 24, "confidence": "medio", "source": "~180 días Bello Monte; 6-18 rango" },
+    "capitalEgressPct": { "value": 0.05, "min": 0.0, "max": 0.10, "confidence": "medio", "source": "canales informales 4-7% para sacar USD del país" }
+  },
+
+  "rental": {
+    "vacancyPct": { "value": 0.12, "min": 0.0, "max": 0.30, "confidence": "medio", "source": "mercado de comprador, sobreoferta" },
+    "nonPaymentPct": { "value": 0.08, "min": 0.0, "max": 0.30, "confidence": "medio", "source": "cola gorda; desalojo casi imposible (SUNAVI)" },
+    "mgmtPctOfRent": { "value": 0.09, "min": 0.0, "max": 0.12, "confidence": "alto", "source": "8-10% property mgmt estándar" },
+    "badTenantAnnualProb": { "value": 0.08, "min": 0.0, "max": 0.30, "confidence": "adivinado", "source": "prob/año de inquilino que no paga y no puedes sacar (año de renta perdido). SUNAVI" }
+  },
+
+  "politicalRisk": {
+    "annualProb": { "value": 0.005, "min": 0.0, "max": 0.03, "confidence": "adivinado", "source": "0.2-1.5%/año evento severo. RESEARCH §9" },
+    "severityHaircut": { "value": 0.70, "min": 0.30, "max": 1.0, "confidence": "adivinado", "source": "expropiación/invasión/confiscación 30-100%" }
+  },
+
+  "assets": {
+    "BTC":     { "label": "Bitcoin",      "cagr": 0.08,  "cagrRange": [0.0, 0.18],  "vol": 0.65, "nu": 4,  "maxDD": -0.84, "confidence": "adivinado" },
+    "ETH":     { "label": "Ethereum",     "cagr": 0.07,  "cagrRange": [-0.03, 0.20], "vol": 0.90, "nu": 3,  "maxDD": -0.94, "confidence": "adivinado" },
+    "SPX":     { "label": "S&P 500 (TR)", "cagr": 0.10,  "cagrRange": [0.05, 0.12], "vol": 0.16, "nu": 6,  "maxDD": -0.55, "confidence": "alto" },
+    "GOLD":    { "label": "Oro",          "cagr": 0.05,  "cagrRange": [0.02, 0.08], "vol": 0.15, "nu": 6,  "maxDD": -0.45, "confidence": "medio" },
+    "STABLE":  { "label": "Stables/T-bills", "cagr": 0.038, "cagrRange": [0.02, 0.05], "vol": 0.005, "nu": 30, "maxDD": 0.0, "confidence": "alto" }
+  },
+  "assetOrder": ["BTC", "ETH", "SPX", "GOLD", "STABLE"],
+
+  "correlations": {
+    "_order": ["BTC", "ETH", "SPX", "GOLD", "STABLE"],
+    "normal": [
+      [1.00, 0.85, 0.40, 0.10, 0.00],
+      [0.85, 1.00, 0.40, 0.10, 0.00],
+      [0.40, 0.40, 1.00, 0.05, 0.00],
+      [0.10, 0.10, 0.05, 1.00, 0.05],
+      [0.00, 0.00, 0.00, 0.05, 1.00]
+    ],
+    "crisis": [
+      [1.00, 0.90, 0.80, -0.05, 0.00],
+      [0.90, 1.00, 0.80, -0.05, 0.00],
+      [0.80, 0.80, 1.00, -0.15, 0.00],
+      [-0.05, -0.05, -0.15, 1.00, 0.05],
+      [0.00, 0.00, 0.00, 0.05, 1.00]
+    ],
+    "crisisAnnualProb": { "value": 0.15, "min": 0.0, "max": 0.5, "confidence": "adivinado", "source": "fracción de años en régimen de crisis (correlaciones spikean a ~0.8)" },
+    "confidence": "medio",
+    "source": "RESEARCH §10: BTC-ETH 0.85, BTC-SPX 0.40 subiendo, oro hedge parcial"
+  },
+
+  "portfolios": {
+    "proRiesgo":    { "label": "Pro-riesgo (aprobado)", "BTC": 0.40, "ETH": 0.25, "SPX": 0.20, "GOLD": 0.05, "STABLE": 0.10 },
+    "balanceado":   { "label": "Balanceado",            "BTC": 0.25, "ETH": 0.10, "SPX": 0.40, "GOLD": 0.10, "STABLE": 0.15 },
+    "conservador":  { "label": "Conservador",           "BTC": 0.10, "ETH": 0.05, "SPX": 0.50, "GOLD": 0.10, "STABLE": 0.25 },
+    "allStables":   { "label": "All-stables",           "BTC": 0.0,  "ETH": 0.0,  "SPX": 0.0,  "GOLD": 0.0,  "STABLE": 1.0 },
+    "sesentaCuarenta": { "label": "60/40 boring",        "BTC": 0.0,  "ETH": 0.0,  "SPX": 0.60, "GOLD": 0.0,  "STABLE": 0.40 }
+  },
+  "defaultPortfolio": "proRiesgo",
+
+  "toggles": {
+    "reinvestOwnerSurplus": { "value": true, "confidence": "alto", "source": "decisión del usuario: comparación justa" },
+    "payRentFromPortfolio": { "value": false, "confidence": "alto", "source": "sequence risk: renta se paga con ingreso" },
+    "useCrisisCorrelation": { "value": true, "confidence": "medio", "source": "conmuta a matriz crisis en años de estrés" },
+    "ownerSurplusVsSolar": { "value": true, "confidence": "alto", "source": "ON = excedente del dueño vs renta Solar (incluye downgrade de vivienda, la decisión real). OFF = vs renta corridor (aísla la decisión de ACTIVO puro, misma vivienda)." }
+  },
+
+  "deferredPurchase": {
+    "waitYears": { "value": 4, "min": 1, "max": 8, "confidence": "adivinado", "source": "estrategia C2: invertir y comprar diferido" }
+  },
+
+  "monteCarlo": {
+    "paths": { "value": 10000, "min": 1000, "max": 50000, "confidence": "alto", "source": "premisa" },
+    "seed": { "value": 42, "confidence": "alto", "source": "RNG determinista para reproducibilidad" }
+  }
+}

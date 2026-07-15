@@ -22,3 +22,6 @@ mantenimiento-carro/scripts/generated/
 # --- OS ---
 .DS_Store
 Thumbs.db
+
+# TS incremental build info
+*.tsbuildinfo
